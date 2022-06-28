@@ -2,7 +2,7 @@ describe('Count products available on the homepage', () => {
 	it('Validate if available number of products equals 16', () => {
 		cy.visit('https://automationteststore.com')
 
-		cy.get('.thumbnail').each(($el, index, $list) => {
+		cy.get('.thumbnail').each(($el, index) => {
 			if ($el.last()) {
 				cy.wrap(index).as('lastProduct')
 			}
@@ -39,12 +39,34 @@ describe('Count products available on the homepage', () => {
 
 		//Get the price of non sale products without the $ sign
 		cy.get('.thumbnail').find('.oneprice').invoke('text').as('itemPrice')
+		cy.get('.thumbnail').find('.pricenew').invoke('text').as('saleItemPrice')
+
+		let itemsTotal = 0
 		cy.get('@itemPrice').then(($linkText) => {
-			let itemPrice = $linkText.split('$')
-			let i
-			for (i = 0; i < itemPrice.length; i++) {
-				cy.log(itemPrice[i])
+			let nonSaleItemsPriceTotal = 0
+			let nonSaleItemPrice = $linkText.split('$')
+			for (let i = 0; i < nonSaleItemPrice.length; i++) {
+				cy.log(nonSaleItemPrice[i])
+				nonSaleItemsPriceTotal += Number(nonSaleItemPrice[i])
 			}
+			itemsTotal += nonSaleItemsPriceTotal
+			cy.log('Non sale price items total: ' + nonSaleItemsPriceTotal)
 		})
+
+		cy.get('@saleItemPrice')
+			.then(($linkText) => {
+				let saleItemsPriceTotal = 0
+				let saleItemPrice = $linkText.split('$')
+				for (let j = 0; j < saleItemPrice.length; j++) {
+					cy.log(saleItemPrice[j])
+					saleItemsPriceTotal += Number(saleItemPrice[j])
+				}
+				itemsTotal += saleItemsPriceTotal
+				cy.log('Sale price items total: ' + saleItemsPriceTotal)
+			})
+			.then(() => {
+				cy.log('All items price total: ' + itemsTotal)
+				expect(itemsTotal).to.equal(648.5)
+			})
 	})
 })
